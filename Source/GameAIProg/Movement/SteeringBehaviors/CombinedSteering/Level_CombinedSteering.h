@@ -32,5 +32,19 @@ private:
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
 
+	UPROPERTY()
+	ASteeringAgent* DrunkAgent{nullptr};
+	UPROPERTY()
+	ASteeringAgent* EvadingAgent{nullptr};
+	
+	// DrunkAgent steering
+	BlendedSteering* pDrunkWanderSteering{nullptr};
+	Wander* pDrunkWander{nullptr};
+	Seek* pDrunkSeek{nullptr};
+	
+	// EvadingAgent steering
+	PrioritySteering* pPrioritySteering{nullptr};	
+	Wander* pEvadingWander{nullptr};
+	Evade* pEvade{nullptr};
 	
 };

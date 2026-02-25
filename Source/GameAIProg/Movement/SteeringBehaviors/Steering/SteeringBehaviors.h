@@ -112,3 +112,12 @@ protected:
 	float m_SlowRadius = 300.f;
 	float m_TargetRadius = 50.f;
 };
+
+class Face: public ISteeringBehavior
+{
+public:
+	Face() = default;
+	virtual ~Face() = default;
+	
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};

@@ -6,17 +6,19 @@
 // TODO: Do the Week01 assignment :^)
 SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
-	SteeringOutput output{};
-	FVector2D offset = Target.Position - Agent.GetPosition();
-	offset.Normalize();
-	output.LinearVelocity = offset;
+	SteeringOutput Output{};
+	FVector2D Offset = Target.Position - Agent.GetPosition();
+	Offset.Normalize();
+	Output.LinearVelocity = Offset;
 	if (Agent.GetDebugRenderingEnabled())
 	{
-		
-		DrawDebugDirectionalArrow(Agent.GetWorld(), FVector{Agent.GetPosition(), 0}, FVector{Agent.GetPosition()+offset*100, 0}, 1.f,
+		DrawDebugDirectionalArrow(Agent.GetWorld(), 
+			                      FVector{Agent.GetPosition(), 0}, 
+			                      FVector{Agent.GetPosition()+Offset*100, 0}, 
+			                      1.f,
 		                          FColor::Green);
 	}
-	return output;
+	return Output;
 }
 
 //WANDER (base> SEEK)
@@ -188,4 +190,44 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	}
 
 	return steering;
+}
+//FACE
+//*******
+
+SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput output{};
+	FVector2D offset = Target.Position - Agent.GetPosition();
+	float targetAngle = atan2(offset.Y, offset.X)*180.f/PI;
+
+	auto controller = Agent.GetController();
+	float currentAngle = controller->GetControlRotation().Yaw;
+	
+	
+	
+	float deltaAngle = targetAngle - currentAngle;
+	if (deltaAngle < -180.f)
+	{
+		deltaAngle += 360.0f;
+	}
+	currentAngle += deltaAngle;
+	
+	controller->SetControlRotation(FRotator{0,currentAngle,0});
+	
+	DrawDebugDirectionalArrow(
+			Agent.GetWorld(),
+			Agent.GetActorLocation(),
+			Agent.GetActorLocation() + Agent.GetActorForwardVector()*100.f,
+			30.f, FColor::Blue);
+	DrawDebugDirectionalArrow(
+			Agent.GetWorld(),
+			Agent.GetActorLocation(),
+			Agent.GetActorLocation() + FVector{offset*100.f,0},
+			30.f, FColor::Red);
+	DrawDebugLine(
+		Agent.GetWorld(), 
+		Agent.GetActorLocation(), 
+		FVector{Target.Position,0}, 
+		FColor::Yellow);
+	return output;
 }
