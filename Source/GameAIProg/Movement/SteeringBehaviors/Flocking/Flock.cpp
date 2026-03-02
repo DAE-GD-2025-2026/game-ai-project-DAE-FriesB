@@ -46,7 +46,16 @@ Flock::Flock(
 			});
 		pBoidSteering = pPrioritySteering.get();
 	}
+	
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+	OldPositions.SetNum(FlockSize);
+	pPartitionedSpace = std::make_unique<CellSpace>(pWorld, WorldSize*2, WorldSize*2, NrOfCellsX, NrOfCellsX, FlockSize);
+#else
+	Neighbors.SetNum(FlockSize);
+#endif
 
+	
+	
 	//Spawn agents
 	for (int i = 0; i < FlockSize; ++i)
 	{
@@ -64,7 +73,10 @@ Flock::Flock(
 			NewAgent->SetActorTickEnabled(false);
 			NewAgent->SetSteeringBehavior(pBoidSteering);
 			NewAgent->SetDebugRenderingEnabled(false);
+			
+
 			Agents[i] = NewAgent;
+			
 		}
 		else
 		{
@@ -72,8 +84,7 @@ Flock::Flock(
 		}
 	}
 	
-	//Initialize neighbors array
-	Neighbors.SetNum(FlockSize-1);
+
 }
 
 Flock::~Flock()
@@ -84,7 +95,10 @@ Flock::~Flock()
 		pAgent->SetSteeringBehavior(nullptr);
 	}
 	Agents.Empty();
+	
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
 	Neighbors.Empty();
+#endif
 }
 
 void Flock::Tick(float DeltaTime)
@@ -104,7 +118,14 @@ void Flock::Tick(float DeltaTime)
 	for (int i = 0; i < size; ++i)
 	{
 		ASteeringAgent* pAgent = Agents[i];
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+		pPartitionedSpace->RegisterNeighbors(*pAgent, NeighborhoodRadius);
+		pPartitionedSpace->UpdateAgentCell(*pAgent, OldPositions[i]);
+		
+		OldPositions[i]= pAgent->GetPosition();
+#else
 		RegisterNeighbors(pAgent);
+#endif
 		pAgent->Tick(DeltaTime);
 	}
 }
@@ -112,7 +133,13 @@ void Flock::Tick(float DeltaTime)
 void Flock::RenderDebug()
 {
 	// TODO: Render all the agents in the flock
-	RenderNeighborhood();
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+	if (DebugRenderPartitions)
+		pPartitionedSpace->RenderCells();
+#endif // USE_SPACE_PARTITIONING
+	if (DebugRenderNeighborhood)
+		RenderNeighborhood();
+	// #StudentEntry end
 }
 
 void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
@@ -162,8 +189,13 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 
 		ImGui::Checkbox("Render first agent neighborhood", &DebugRenderNeighborhood);
 		ImGui::Spacing();
+		bool bCurrentDebugRenderPartitions = DebugRenderPartitions;
+		if (ImGui::Checkbox("Debug render partitions", &bCurrentDebugRenderPartitions))
+		{
+			DebugRenderPartitions = bCurrentDebugRenderPartitions;
+		}
 		ImGui::Spacing();
-
+		ImGui::Spacing();
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
 
@@ -222,10 +254,10 @@ FVector2D Flock::GetAverageNeighborPos() const
 	int numNeighbors = GetNrOfNeighbors();
 	if (numNeighbors == 0)return avgPosition;
 	float neighborsDenom = 1.f / numNeighbors;
-
+    
 	for (int idx = 0; idx < numNeighbors; ++idx)
 	{
-		avgPosition += Neighbors[idx]->GetPosition() * neighborsDenom;
+		avgPosition += GetNeighbors()[idx]->GetPosition() * neighborsDenom;
 	}
 
 	return avgPosition;
@@ -242,7 +274,7 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 
 	for (int idx = 0; idx < numNeighbors; ++idx)
 	{
-		avgVelocity += Neighbors[idx]->GetLinearVelocity() * neighborsDenom;
+		avgVelocity += GetNeighbors()[idx]->GetLinearVelocity() * neighborsDenom;
 	}
 
 
