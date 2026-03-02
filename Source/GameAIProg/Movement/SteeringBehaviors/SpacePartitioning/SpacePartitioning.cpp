@@ -151,7 +151,7 @@ void CellSpace::RenderCells() const
 		DrawDebugBox(pWorld, BoxCenter, BoxExtents, FColorList::Blue);
 		
 		FString Text = FString::Printf(TEXT("%d"), static_cast<int>(CurrentCell.Agents.size()));
-		DrawDebugString(pWorld, BoxCenter, FString(Text), 0, FColor::Blue, 0);
+		DrawDebugString(pWorld, BoxCenter, FString(Text), nullptr, FColor::Blue, 0);
 	}
 }
 
