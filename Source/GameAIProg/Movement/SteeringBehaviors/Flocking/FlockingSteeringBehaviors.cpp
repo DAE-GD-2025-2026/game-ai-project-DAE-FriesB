@@ -39,7 +39,10 @@ SteeringOutput Separation::CalculateSteering(float deltaT, ASteeringAgent& pAgen
 		
 		//Inverse proportional to distance
         FVector2D PushForce = ToAgent;
-        PushForce /= PushForce.SquaredLength();
+		
+		//float distance = ToAgent.Length();
+		// Inverse proportional = normalized / distance
+		PushForce /= PushForce.SquaredLength();
 		
         OutputVelocity += PushForce;
 	}

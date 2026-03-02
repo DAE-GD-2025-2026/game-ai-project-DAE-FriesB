@@ -13,6 +13,8 @@ AWorldTrimVolume::AWorldTrimVolume()
 	PrimaryActorTick.bCanEverTick = true;
 
 	TrimVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TrimVolume"));
+	auto pawnResponse = TrimVolume->GetCollisionResponseToChannel(ECC_Pawn);
+	TrimVolume->SetCollisionResponseToChannel(ECC_GameTraceChannel1, pawnResponse);
 	TrimVolume->SetHiddenInGame(true);
 
 	RootComponent = TrimVolume;
@@ -77,6 +79,4 @@ void AWorldTrimVolume::Tick(float DeltaTime)
 void AWorldTrimVolume::SetTrimWorldSize(float NewSize)
 {
 	TrimWorldSize = NewSize;
-	TrimVolume->SetBoxExtent(FVector(TrimWorldSize, TrimWorldSize, 5000));
-}
-
+	TrimV

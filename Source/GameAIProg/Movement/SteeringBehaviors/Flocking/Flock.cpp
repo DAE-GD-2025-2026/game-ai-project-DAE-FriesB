@@ -203,9 +203,11 @@ void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 		ASteeringAgent* const pOther = Agents[i];
 
 		if (pOther == pAgent)continue; //skip self
-
+		
+		//const float distanceSq = (agentPos - pOther->GetPosition()).SquaredLength();
 		const float distanceSq = (agentPos - pOther->GetPosition()).SquaredLength();
-		if (distanceSq > NeighborhoodRadius*NeighborhoodRadius)
+
+		if ( distanceSq > NeighborhoodRadius*NeighborhoodRadius )
 			continue;
 
 		Neighbors[NrOfNeighbors++] = pOther;
